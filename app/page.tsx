@@ -354,10 +354,9 @@ export default function Home() {
             </a>
           </div>
         </section>
-
-        <footer className="py-10 border-t border-border text-center">
+         <footer className="py-10 border-t border-border text-center">
           <p className="text-muted text-xs font-mono">
-            Built with Next.js and Tailwind CSS
+            © 2026 Sriram Puranik
           </p>
         </footer>
       </div>
