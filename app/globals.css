@@ -1,13 +1,16 @@
 @import "tailwindcss";
 
+/* Colour tokens. Change the accent here and the whole site follows. */
 :root {
-  --background: #08080a;
-  --foreground: #f4f4f5;
-  --muted: #9ca3af;
-  --accent: #38bdf8;
-  --accent-2: #818cf8;
-  --border: #232329;
-  --card: #111114;
+  --background: #0b0b0c;
+  --foreground: #f2f1ec;
+  --muted: #9b9a94;
+  --accent: #c6f432;
+  --border: #26262a;
+  --card: #121214;
+  /* Mouse position, updated by components/Spotlight.tsx */
+  --mx: 50vw;
+  --my: 20vh;
 }
 
 @theme inline {
@@ -15,99 +18,162 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --color-accent2: var(--accent-2);
   --color-border: var(--border);
   --color-card: var(--card);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  overflow-x: hidden;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-code);
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--background);
+}
+
+/* Keyboard focus ring, visible on every link and button. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Faint grid behind the page that fades out towards the bottom. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background:
-    radial-gradient(600px circle at 15% 10%, rgba(56, 189, 248, 0.10), transparent 60%),
-    radial-gradient(600px circle at 85% 25%, rgba(129, 140, 248, 0.10), transparent 60%);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
 }
 
-body::after {
-  content: "";
+/* Glow that follows the mouse (position comes from --mx / --my). */
+.spotlight {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  background: radial-gradient(520px circle at var(--mx) var(--my), rgba(198, 244, 50, 0.07), transparent 65%);
 }
 
+/* Scroll reveal: hidden until components/Reveal.tsx adds .is-visible. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero headline: each word slides up from behind a mask. */
+.word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Padding keeps descenders (g, p) from being clipped by the mask. */
+  padding-bottom: 0.12em;
+}
+.word > span {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes rise {
+  to { transform: translateY(0); }
+}
+
+/* Simple fade-up used for hero text that is visible on load. */
+.fade-up {
+  opacity: 0;
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+.float {
+  animation: float 7s ease-in-out infinite;
+}
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-@keyframes blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-
-@keyframes typing {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-.reveal {
-  opacity: 0;
-  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.float {
-  animation: float 6s ease-in-out infinite;
+  50% { transform: translateY(-10px); }
 }
 
 .cursor-blink {
   animation: blink 1s step-end infinite;
 }
+@keyframes blink {
+  50% { opacity: 0; }
+}
 
-.typing-line {
-  display: inline-block;
+/* Pulsing dot in the status chip. */
+.pulse-dot {
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(198, 244, 50, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(198, 244, 50, 0); }
+}
+
+/* Endless moving strip of technologies. The list is rendered twice, so -50% loops seamlessly. */
+.marquee {
+  /* Clip the long track so it cannot make the page scroll sideways. */
   overflow: hidden;
-  white-space: nowrap;
-  width: 0;
-  animation: typing 1.4s steps(30, end) forwards;
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #ffffff 20%, var(--accent) 60%, var(--accent-2) 95%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Project card glow (position comes from --cx / --cy set in ProjectCard.tsx). */
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: radial-gradient(340px circle at var(--cx, 50%) var(--cy, 50%), rgba(198, 244, 50, 0.12), transparent 65%);
+}
+.card-glow:hover::before {
+  opacity: 1;
+}
+.card-glow:hover {
+  border-color: rgba(198, 244, 50, 0.45);
 }
 
+/* Respect the OS "reduce motion" setting: show everything, animate nothing. */
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .float, .typing-line, .cursor-blink { animation: none; }
-  .reveal { opacity: 1; }
-  .typing-line { width: 100%; }
   html { scroll-behavior: auto; }
+  .reveal, .fade-up { opacity: 1; transform: none; transition: none; animation: none; }
+  .word > span { transform: none; animation: none; }
+  .float, .cursor-blink, .pulse-dot, .marquee-track { animation: none; }
 }
