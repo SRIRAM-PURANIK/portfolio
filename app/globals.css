@@ -322,12 +322,5 @@ body {
   }
 }
 
-/* Visitors who ask for less motion get the final state with no movement. */
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .rise, .reveal { opacity: 1 !important; transform: none !important; filter: none !important; animation: none !important; }
-  .blob, .marquee-track, .glow-border, .pulse::after, .caret, .word-swap { animation: none !important; }
-  .hero-out, .hero-parallax, .title-slide { animation: none !important; }
-  .timeline-line { transform: none !important; }
-  .spot-card:hover { transform: none; }
-}
+/* Animations play for every visitor, whatever their system animation setting (owner's choice). */
+

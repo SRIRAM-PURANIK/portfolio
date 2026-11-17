@@ -7,8 +7,6 @@ export default function RotatingWord({ words, interval = 2400 }: { words: string
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    // Respect visitors who turned motion off: keep the first word.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = window.setInterval(() => setI((n) => (n + 1) % words.length), interval);
     return () => window.clearInterval(id);
   }, [words.length, interval]);
