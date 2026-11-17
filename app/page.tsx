@@ -316,12 +316,6 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-line">
-        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-6 py-8 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Sriram Puranik</p>
-          <p>Built with Next.js, TypeScript and Tailwind CSS. Deployed on Vercel.</p>
-        </div>
-      </footer>
     </>
   );
 }
