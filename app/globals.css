@@ -1,150 +1,176 @@
 @import "tailwindcss";
 
-/* Colour tokens. Change the accent here and the whole site follows. */
+/* Dark is the default look; the toggle stores "light" in localStorage to switch.
+   Change a colour here and the whole site follows. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #0b0b0c;
-  --foreground: #f2f1ec;
-  --muted: #9b9a94;
-  --accent: #c6f432;
-  --border: #26262a;
-  --card: #121214;
-  /* Mouse position, updated by components/Spotlight.tsx */
-  --mx: 50vw;
-  --my: 20vh;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --text: #111827;
+  --mute: #4b5563;
+  --faint: #8a93a1;
+  --line: #e3e6eb;
+  --accent: #0b7c99;
+  --accent-2: #6366f1;
+  --accent-bg: #e3f4f8;
+  --glow: rgba(11, 124, 153, 0.1);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #070b12;
+  --surface: #0d131c;
+  --text: #e8eef6;
+  --mute: #9aa6b5;
+  --faint: #66717f;
+  --line: #1a2330;
+  --accent: #5fd4ec;
+  --accent-2: #8b8cf8;
+  --accent-bg: rgba(95, 212, 236, 0.1);
+  --glow: rgba(95, 212, 236, 0.09);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-mute: var(--mute);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
   --color-accent: var(--accent);
-  --color-border: var(--border);
-  --color-card: var(--card);
-  --font-sans: var(--font-body);
-  --font-display: var(--font-display);
-  --font-mono: var(--font-code);
+  --color-accent-2: var(--accent-2);
+  --color-accent-bg: var(--accent-bg);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-code), ui-monospace, monospace;
 }
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* keep section titles clear of the sticky header */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body), system-ui, sans-serif;
-  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow-x: clip; /* nothing decorative may cause sideways scrolling on phones */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
   background: var(--accent);
-  color: var(--background);
+  color: var(--bg);
 }
 
-/* Keyboard focus ring, visible on every link and button. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* Faint grid behind the page that fades out towards the bottom. */
-body::before {
-  content: "";
+/* Gradient text used on the name and a few headings. */
+.text-gradient {
+  background: linear-gradient(100deg, var(--text) 20%, var(--accent) 60%, var(--accent-2) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Page-wide cursor spotlight (desktop only) ----------
+   One fixed layer; JS writes the pointer position into --x / --y. */
+.page-spotlight {
+  pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
+  z-index: 0;
+  background: radial-gradient(600px circle at var(--x, 50%) var(--y, -20%), var(--glow), transparent 45%);
 }
 
-/* Glow that follows the mouse (position comes from --mx / --my). */
-.spotlight {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(520px circle at var(--mx) var(--my), rgba(198, 244, 50, 0.07), transparent 65%);
+/* ---------- Hero background: faint dot grid + two slow drifting colour blobs ---------- */
+.hero-grid {
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 75%);
+}
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.35;
+  will-change: transform;
+}
+.blob-a {
+  background: var(--accent);
+  animation: drift-a 18s ease-in-out infinite alternate;
+}
+.blob-b {
+  background: var(--accent-2);
+  animation: drift-b 22s ease-in-out infinite alternate;
+}
+[data-theme="light"] .blob {
+  opacity: 0.18;
+}
+@keyframes drift-a {
+  to { transform: translate(80px, 50px) scale(1.15); }
+}
+@keyframes drift-b {
+  to { transform: translate(-70px, 40px) scale(0.9); }
 }
 
-/* Scroll reveal: hidden until components/Reveal.tsx adds .is-visible. */
+/* ---------- Hero entrance: each piece rises in, staggered by --d ---------- */
+.rise {
+  opacity: 0;
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* ---------- Rotating word in the headline ---------- */
+.word-swap {
+  animation: word-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(60%); }
+  to { opacity: 1; transform: none; }
+}
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 4px;
+  vertical-align: -0.12em;
+  background: var(--accent);
+  animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ---------- Scroll reveal: hidden until the element scrolls into view ---------- */
 .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition:
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--d, 0ms);
 }
 .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
-/* Hero headline: each word slides up from behind a mask. */
-.word {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
-  /* Padding keeps descenders (g, p) from being clipped by the mask. */
-  padding-bottom: 0.12em;
-}
-.word > span {
-  display: inline-block;
-  transform: translateY(110%);
-  animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes rise {
-  to { transform: translateY(0); }
-}
-
-/* Simple fade-up used for hero text that is visible on load. */
-.fade-up {
-  opacity: 0;
-  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.float {
-  animation: float 7s ease-in-out infinite;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.cursor-blink {
-  animation: blink 1s step-end infinite;
-}
-@keyframes blink {
-  50% { opacity: 0; }
-}
-
-/* Pulsing dot in the status chip. */
-.pulse-dot {
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(198, 244, 50, 0.5); }
-  50% { box-shadow: 0 0 0 6px rgba(198, 244, 50, 0); }
-}
-
-/* Endless moving strip of technologies. The list is rendered twice, so -50% loops seamlessly. */
+/* ---------- Tech marquee: two copies of the list slide left forever ---------- */
 .marquee {
-  /* Clip the long track so it cannot make the page scroll sideways. */
-  overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
 }
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee 32s linear infinite;
+  animation: marquee 40s linear infinite;
 }
 .marquee:hover .marquee-track {
   animation-play-state: paused;
@@ -153,27 +179,97 @@ body::before {
   to { transform: translateX(-50%); }
 }
 
-/* Project card glow (position comes from --cx / --cy set in ProjectCard.tsx). */
-.card-glow::before {
+/* ---------- Cards with a light that follows the cursor (--mx / --my set by JS) ---------- */
+.spot-card {
+  position: relative;
+  isolation: isolate;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.35s ease;
+}
+.spot-card::before {
   content: "";
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
   opacity: 0;
-  transition: opacity 0.3s;
-  background: radial-gradient(340px circle at var(--cx, 50%) var(--cy, 50%), rgba(198, 244, 50, 0.12), transparent 65%);
+  transition: opacity 0.35s ease;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), var(--accent-bg), transparent 60%);
 }
-.card-glow:hover::before {
+.spot-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.spot-card:hover::before {
   opacity: 1;
 }
-.card-glow:hover {
-  border-color: rgba(198, 244, 50, 0.45);
+.spot-card .arrow {
+  transition: transform 0.3s ease;
+}
+.spot-card:hover .arrow {
+  transform: translate(3px, -3px);
 }
 
-/* Respect the OS "reduce motion" setting: show everything, animate nothing. */
+/* ---------- Timeline: the line fills as you scroll; current role pulses ---------- */
+.timeline-line {
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.is-visible .timeline-line {
+  transform: scaleY(1);
+}
+.pulse::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid var(--accent);
+  animation: pulse 2s ease-out infinite;
+}
+@keyframes pulse {
+  from { opacity: 0.8; transform: scale(0.6); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+
+/* ---------- Contact card: slow rotating gradient border ---------- */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.glow-border {
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--angle), transparent 40%, var(--accent), var(--accent-2), transparent 70%) border-box;
+  border: 1px solid transparent;
+  animation: border-angle 6s linear infinite;
+}
+@keyframes border-angle {
+  to { --angle: 360deg; }
+}
+
+/* Button shine: a light streak crosses the button on hover. */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%) skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: transform 0.6s ease;
+}
+.shine:hover::after {
+  transform: translateX(120%) skewX(-20deg);
+}
+
+/* Visitors who ask for less motion get the final state with no movement. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .reveal, .fade-up { opacity: 1; transform: none; transition: none; animation: none; }
-  .word > span { transform: none; animation: none; }
-  .float, .cursor-blink, .pulse-dot, .marquee-track { animation: none; }
+  .rise, .reveal { opacity: 1 !important; transform: none !important; filter: none !important; animation: none !important; }
+  .blob, .marquee-track, .glow-border, .pulse::after, .caret, .word-swap { animation: none !important; }
+  .timeline-line { transform: none !important; }
+  .spot-card:hover { transform: none; }
 }

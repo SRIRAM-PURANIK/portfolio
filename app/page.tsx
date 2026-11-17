@@ -1,236 +1,332 @@
+import Image from "next/image";
 import CopyEmail from "@/components/CopyEmail";
-import Nav from "@/components/Nav";
-import ProjectCard from "@/components/ProjectCard";
-import Reveal from "@/components/Reveal";
-import ScrollProgress from "@/components/ScrollProgress";
-import Spotlight from "@/components/Spotlight";
-import Terminal from "@/components/Terminal";
-import { education, experience, marquee, profile, projects, skills } from "@/data/site";
+import CountUp from "@/components/CountUp";
+import Effects from "@/components/Effects";
+import Header from "@/components/Header";
+import RotatingWord from "@/components/RotatingWord";
+import { ArrowUpRight, FileIcon, GitHubIcon, LinkedInIcon, MailIcon } from "@/components/Icons";
+import { education, experience, headlineWords, marquee, navLinks, profile, projects, skills, stats } from "@/data/site";
 
-// Section heading with a number, used by every section so they stay consistent.
-function Heading({ index, children }: { index: string; children: string }) {
+// External links open in a new tab without giving the new page access to this one.
+const ext = { target: "_blank", rel: "noopener noreferrer" } as const;
+
+// Lets a stagger delay be passed as a CSS variable (read by .rise / .reveal in globals.css).
+const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
+
+// Section heading: a numbered mono label above a large title, revealed on scroll.
+function SectionHead({ n, label, title }: { n: string; label: string; title: string }) {
   return (
-    <Reveal>
-      <h2 className="mb-10 flex items-baseline gap-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-        <span className="font-mono text-sm font-normal text-accent">{index}</span>
-        {children}
-        <span aria-hidden className="h-px flex-1 self-center bg-border" />
-      </h2>
-    </Reveal>
+    <div className="reveal mb-12">
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+        {n} <span className="text-faint">/</span> {label}
+      </p>
+      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+    </div>
   );
 }
 
-// This page is a Server Component: it is rendered to static HTML at build time.
-// Only the small interactive pieces in /components run JavaScript in the browser.
-export default function Home() {
-  const nameWords = profile.name.split(" ");
+function Tag({ children }: { children: React.ReactNode }) {
+  return <li className="rounded-full border border-line bg-bg/60 px-2.5 py-0.5 font-mono text-[11px] text-mute">{children}</li>;
+}
 
+// The hero's code card: a short profile written as code, each line rising in after the last.
+function CodeCard() {
+  const s = (t: string) => <span className="text-emerald-500 dark:text-emerald-400">&quot;{t}&quot;</span>;
+  const lines: React.ReactNode[] = [
+    <><span className="text-accent-2">const</span> <span className="text-accent">developer</span> = {"{"}</>,
+    <>  name: {s(profile.name)},</>,
+    <>  role: {s(profile.role)},</>,
+    <>  based: {s("Bengaluru, IN")},</>,
+    <>  backend: [{s("Node.js")}, {s("Express")}, {s("SQL")}],</>,
+    <>  frontend: [{s("React")}, {s("JavaScript")}],</>,
+    <>  focus: {s("web applications")},</>,
+    <>  shipping: <span className="text-amber-500 dark:text-amber-400">true</span>,</>,
+    <>{"}"};</>,
+  ];
+  return (
+    <div className="rise relative min-w-0" style={delay(450)}>
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/40 via-transparent to-accent-2/40 blur-sm" aria-hidden="true" />
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-surface/90 shadow-2xl shadow-black/20 backdrop-blur">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+          <span className="size-3 rounded-full bg-[#ff5f57]" />
+          <span className="size-3 rounded-full bg-[#febc2e]" />
+          <span className="size-3 rounded-full bg-[#28c840]" />
+          <span className="ml-3 font-mono text-xs text-faint">developer.ts</span>
+        </div>
+        <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-7 text-mute sm:text-[13px]">
+          {lines.map((l, i) => (
+            <div key={i} className="rise flex" style={delay(700 + i * 110)}>
+              <span className="mr-4 w-4 shrink-0 select-none text-right text-faint/60">{i + 1}</span>
+              <code className="whitespace-pre">{l}</code>
+            </div>
+          ))}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+export default function Home() {
   return (
     <>
-      <ScrollProgress />
-      <Spotlight />
-      <Nav />
+      <Effects />
+      <Header links={navLinks} />
 
-      <main id="top" className="mx-auto max-w-6xl px-6 pt-16 sm:px-10">
-        {/* HERO */}
-        <section className="grid min-h-[92vh] items-center gap-14 py-16 lg:grid-cols-[1.15fr_0.85fr]">
-          <div>
-            <p className="fade-up inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-1.5 font-mono text-xs text-muted">
-              <span className="pulse-dot h-2 w-2 rounded-full bg-accent" />
-              {profile.role} · {profile.location}
-            </p>
+      <main id="top" className="relative z-10">
+        {/* ---------------- Hero ---------------- */}
+        <section className="relative overflow-hidden">
+          <div className="hero-grid absolute inset-0 -z-10" aria-hidden="true" />
+          <div className="blob blob-a -z-10 left-[8%] top-10 size-72" aria-hidden="true" />
+          <div className="blob blob-b -z-10 right-[10%] top-40 size-64" aria-hidden="true" />
 
-            <h1 className="mt-7 font-display text-6xl font-bold leading-[0.95] tracking-tighter sm:text-8xl">
-              {nameWords.map((word, i) => (
-                <span key={word} className="word mr-[0.22em]">
-                  {/* Each word starts slightly later than the one before it. */}
-                  <span style={{ animationDelay: `${0.1 + i * 0.12}s` }} className={i === 1 ? "text-accent" : ""}>
-                    {word}
-                  </span>
+          {/* min-w-0 stops the code card's long lines from widening the grid on phones. */}
+          <div className="mx-auto grid max-w-5xl items-center gap-14 px-6 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1.15fr_1fr]">
+            <div className="min-w-0">
+              <div className="rise" style={delay(0)}>
+                <Image src={profile.photo} alt={profile.name} width={64} height={64} priority className="size-16 rounded-full border-2 border-line object-cover" />
+              </div>
+
+              <h1 className="rise mt-7 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl" style={delay(120)}>
+                Hi, I&apos;m <span className="text-gradient">{profile.name}</span>.
+                <span className="mt-3 block text-2xl font-medium text-mute sm:text-3xl">
+                  I build <RotatingWord words={headlineWords} />
                 </span>
-              ))}
-            </h1>
+              </h1>
 
-            <p className="fade-up mt-7 max-w-xl text-lg leading-relaxed text-muted" style={{ animationDelay: "0.45s" }}>
-              {profile.tagline}
-            </p>
+              <p className="rise mt-6 max-w-xl text-base leading-relaxed text-mute sm:text-lg" style={delay(240)}>
+                {profile.intro}
+              </p>
 
-            <div className="fade-up mt-10 flex flex-wrap gap-4" style={{ animationDelay: "0.6s" }}>
-              <a
-                href="#projects"
-                className="rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-background transition-transform duration-300 hover:-translate-y-0.5"
-              >
-                See my work
-              </a>
-              <a
-                href="#contact"
-                className="rounded-full border border-border px-7 py-3.5 text-sm font-medium transition-colors duration-300 hover:border-accent hover:text-accent"
-              >
-                Get in touch
-              </a>
+              <div className="rise mt-8 flex flex-wrap items-center gap-2 sm:gap-3" style={delay(360)}>
+                <a
+                  href={profile.resume}
+                  {...ext}
+                  className="shine inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-accent to-accent-2 px-4 py-2.5 sm:px-5 text-sm font-semibold text-bg shadow-lg shadow-accent/20 transition-transform hover:-translate-y-0.5"
+                >
+                  <FileIcon /> Download Resume
+                </a>
+                {[
+                  { href: profile.github, label: "GitHub", icon: <GitHubIcon />, external: true },
+                  { href: profile.linkedin, label: "LinkedIn", icon: <LinkedInIcon />, external: true },
+                  { href: `mailto:${profile.email}`, label: "Email", icon: <MailIcon />, external: false },
+                ].map((b) => (
+                  <a
+                    key={b.label}
+                    href={b.href}
+                    {...(b.external ? ext : {})}
+                    aria-label={b.label}
+                    title={b.label}
+                    className="grid size-10 place-items-center rounded-full border border-line bg-surface/60 text-mute transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent"
+                  >
+                    {b.icon}
+                  </a>
+                ))}
+              </div>
             </div>
+
+            <CodeCard />
           </div>
 
-          <div className="fade-up hidden lg:block" style={{ animationDelay: "0.7s" }}>
-            <Terminal />
+          {/* Count-up stats */}
+          <div className="mx-auto max-w-5xl px-6 pb-14">
+            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+              {stats.map((s, i) => (
+                <div key={s.label} className="reveal bg-bg px-5 py-6" style={delay(i * 90)}>
+                  <dt className="sr-only">{s.label}</dt>
+                  <dd>
+                    <span className="text-3xl font-semibold tracking-tight">
+                      <CountUp to={s.value} suffix={s.suffix} />
+                    </span>
+                    <span className="mt-1 block text-xs text-faint">{s.label}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {/* Technology strip: the list is rendered twice so the loop has no gap. */}
+          <div className="marquee overflow-hidden border-y border-line py-5" aria-label="Technologies I use">
+            <ul className="marquee-track font-mono text-sm text-faint">
+              {[...marquee, ...marquee].map((t, i) => (
+                <li key={i} aria-hidden={i >= marquee.length ? "true" : undefined} className="flex items-center gap-10 whitespace-nowrap pr-10">
+                  {t}
+                  <span className="text-[10px] text-accent/70" aria-hidden="true">◆</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
-      </main>
 
-      {/* TECH STRIP: the list is printed twice so the loop has no visible seam. */}
-      <div className="marquee border-y border-border py-5" aria-hidden>
-        <div className="marquee-track">
-          {[...marquee, ...marquee].map((item, i) => (
-            <span key={i} className="mx-7 flex items-center gap-14 font-display text-xl text-muted">
-              {item}
-              <span className="text-accent">✦</span>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-6xl px-6 sm:px-10">
-        {/* ABOUT */}
-        <section id="about" className="scroll-mt-16 py-24">
-          <Heading index="01">About</Heading>
-          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr]">
-            <Reveal className="space-y-5 text-lg leading-relaxed text-muted">
-              <p>
-                I am a Computer Science graduate working as a full-stack developer on a production,
-                multi-tenant healthcare platform. I like owning a feature from the database migration
-                to the button a user presses, and I care most about the parts where a mistake costs
-                someone money: billing rules, wallet balances and access control.
-              </p>
-              <p>
-                Away from the keyboard I play basketball and cricket, swim, and sing. I speak five
-                languages: English, Kannada, Hindi, Telugu and Japanese.
-              </p>
-            </Reveal>
-
-            <Reveal delay={0.15}>
-              <h3 className="mb-5 font-mono text-xs tracking-widest text-accent">EDUCATION</h3>
-              <ul className="space-y-5">
-                {education.map((item) => (
-                  <li key={item.title} className="border-l-2 border-border pl-5 transition-colors duration-300 hover:border-accent">
-                    <p className="font-semibold">{item.title}</p>
-                    <p className="mt-1 text-sm text-muted">{item.place}</p>
-                    <p className="mt-1 font-mono text-xs text-muted">{item.period}</p>
+        <div className="mx-auto max-w-5xl px-6">
+          {/* ---------------- About ---------------- */}
+          <section id="about" className="py-24">
+            <SectionHead n="01" label="About" title="Correctness first, then polish." />
+            <div className="grid gap-10 md:grid-cols-[1.4fr_1fr]">
+              <div className="space-y-5 text-[17px] leading-relaxed text-mute">
+                {profile.about.map((p, i) => (
+                  <p key={p.slice(0, 24)} className="reveal" style={delay(i * 100)}>
+                    {p}
+                  </p>
+                ))}
+              </div>
+              <ul className="reveal spot-card space-y-3 self-start rounded-2xl border border-line bg-surface/60 p-6" style={delay(200)}>
+                {[
+                  ["Role", profile.role],
+                  ["Based in", profile.location],
+                  ["Education", "B.Tech CSE, 2026"],
+                  ["Focus", "Backend & full-stack"],
+                ].map(([k, v]) => (
+                  <li key={k} className="flex justify-between gap-4 border-b border-line pb-3 text-sm last:border-0 last:pb-0">
+                    <span className="text-faint">{k}</span>
+                    <span className="text-right font-medium">{v}</span>
                   </li>
                 ))}
               </ul>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* EXPERIENCE */}
-        <section id="experience" className="scroll-mt-16 py-24">
-          <Heading index="02">Experience</Heading>
-          {experience.map((job) => (
-            <Reveal key={job.title}>
-              <article className="rounded-2xl border border-border bg-card p-7 sm:p-10">
-                <div className="flex flex-wrap items-baseline justify-between gap-3">
-                  <h3 className="font-display text-2xl font-semibold tracking-tight">{job.title}</h3>
-                  <p className="font-mono text-xs text-accent">{job.period}</p>
-                </div>
-                <p className="mt-1 text-muted">{job.company}</p>
-                <p className="mt-5 max-w-3xl leading-relaxed text-muted">{job.summary}</p>
-                <ul className="mt-6 grid gap-x-10 gap-y-4 md:grid-cols-2">
-                  {job.points.map((point) => (
-                    <li key={point} className="flex gap-3 text-sm leading-relaxed">
-                      <span aria-hidden className="mt-0.5 text-accent">▹</span>
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-                <ul className="mt-7 flex flex-wrap gap-2">
-                  {job.stack.map((tech) => (
-                    <li key={tech} className="rounded-full border border-border px-3 py-1 font-mono text-xs text-muted">
-                      {tech}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            </Reveal>
-          ))}
-        </section>
-
-        {/* PROJECTS */}
-        <section id="projects" className="scroll-mt-16 py-24">
-          <Heading index="03">Projects</Heading>
-          <div className="grid gap-5 md:grid-cols-2">
-            {projects.map((project, i) => (
-              // Stagger the two columns so cards do not all appear at once.
-              <Reveal key={project.title} delay={(i % 2) * 0.12}>
-                <ProjectCard project={project} />
-              </Reveal>
-            ))}
-          </div>
-        </section>
-
-        {/* SKILLS */}
-        <section id="skills" className="scroll-mt-16 py-24">
-          <Heading index="04">Skills</Heading>
-          <div className="grid gap-10 sm:grid-cols-2">
-            {skills.map((group, i) => (
-              <Reveal key={group.label} delay={(i % 2) * 0.12}>
-                <h3 className="mb-4 font-mono text-xs tracking-widest text-accent">{group.label.toUpperCase()}</h3>
-                <ul className="flex flex-wrap gap-2">
-                  {group.items.map((item) => (
-                    <li
-                      key={item}
-                      className="rounded-lg border border-border bg-card px-4 py-2 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:text-accent"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-
-        {/* CONTACT */}
-        <section id="contact" className="scroll-mt-16 py-28 text-center">
-          <Reveal>
-            <p className="font-mono text-sm text-accent">05 / Contact</p>
-            <h2 className="mt-4 font-display text-5xl font-bold tracking-tighter sm:text-7xl">
-              Let&apos;s build something <span className="text-accent">solid</span>.
-            </h2>
-            <p className="mx-auto mt-6 max-w-md leading-relaxed text-muted">
-              Have a full-stack or backend problem worth solving? Send me a note and I will reply.
-            </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <a
-                href={`mailto:${profile.email}`}
-                className="rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-background transition-transform duration-300 hover:-translate-y-0.5"
-              >
-                Email me
-              </a>
-              <CopyEmail email={profile.email} />
-              <a
-                href={profile.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-border px-7 py-3.5 text-sm font-medium transition-colors duration-300 hover:border-accent hover:text-accent"
-              >
-                GitHub
-              </a>
-              <a
-                href={profile.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-border px-7 py-3.5 text-sm font-medium transition-colors duration-300 hover:border-accent hover:text-accent"
-              >
-                LinkedIn
-              </a>
             </div>
-          </Reveal>
-        </section>
+          </section>
 
-        <footer className="border-t border-border py-10 text-center">
-          <p className="font-mono text-xs text-muted">© 2026 {profile.name}. Built with Next.js.</p>
-        </footer>
-      </div>
+          {/* ---------------- Experience: timeline ---------------- */}
+          <section id="experience" className="py-24">
+            <SectionHead n="02" label="Experience" title="Where I've been building." />
+            <ol className="reveal relative space-y-12 pl-8">
+              <span className="timeline-line absolute left-[5px] top-2 h-[calc(100%-0.5rem)] w-px bg-gradient-to-b from-accent via-accent-2/60 to-line" aria-hidden="true" />
+              {experience.map((r) => (
+                <li key={r.title} className="relative">
+                  <span className="pulse absolute -left-8 top-7 size-3 rounded-full bg-accent" aria-hidden="true" />
+                  <div className="spot-card rounded-2xl border border-line bg-surface/60 p-6">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-lg font-semibold">
+                        {r.title} <span className="text-accent">@ {r.org}</span>
+                      </h3>
+                      <span className="font-mono text-xs text-faint">{r.period}</span>
+                    </div>
+                    <p className="mt-1 text-sm text-faint">
+                      {r.place} · {r.summary}
+                    </p>
+                    <ul className="mt-5 space-y-2.5 text-[15px] leading-relaxed text-mute">
+                      {r.points.map((pt) => (
+                        <li key={pt} className="flex gap-3">
+                          <span className="mt-[0.2em] font-mono text-accent" aria-hidden="true">▹</span>
+                          <span>{pt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <ul className="mt-5 flex flex-wrap gap-2" aria-label="Technologies used">
+                      {r.stack.map((s) => (
+                        <Tag key={s}>{s}</Tag>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+              <li className="relative">
+                <span className="absolute -left-8 top-1.5 size-3 rounded-full border-2 border-accent bg-bg" aria-hidden="true" />
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="font-semibold">
+                    {education.title} <span className="font-normal text-faint">· {education.org}</span>
+                  </h3>
+                  <span className="font-mono text-xs text-faint">{education.period}</span>
+                </div>
+                <p className="mt-1 text-sm text-faint">{education.place}</p>
+              </li>
+            </ol>
+            <a href={profile.resume} {...ext} className="mt-10 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">
+              View full resume <ArrowUpRight />
+            </a>
+          </section>
+
+          {/* ---------------- Projects: spotlight cards ---------------- */}
+          <section id="projects" className="py-24">
+            <SectionHead n="03" label="Projects" title="Things I've built." />
+            <ul className="grid gap-5 md:grid-cols-2">
+              {projects.map((p, i) => (
+                <li key={p.title} className="reveal" style={delay((i % 2) * 120)}>
+                  <article className="spot-card flex h-full flex-col rounded-2xl border border-line bg-surface/60 p-6">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-accent">{p.kind}</span>
+                      <span className="font-mono text-xs text-faint">{p.year}</span>
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold leading-snug">
+                      {p.repo ? (
+                        // The ::after overlay makes the whole card clickable.
+                        <a href={p.repo} {...ext} className="inline-flex items-start gap-1.5 after:absolute after:inset-0 after:rounded-2xl after:content-['']">
+                          {p.title} <ArrowUpRight className="arrow mt-1 size-4 shrink-0 text-accent" />
+                        </a>
+                      ) : (
+                        p.title
+                      )}
+                    </h3>
+                    {p.note && (
+                      <span className="mt-2 w-fit rounded-full bg-accent-bg px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">{p.note}</span>
+                    )}
+                    <p className="mt-3 flex-1 text-[15px] leading-relaxed text-mute">{p.blurb}</p>
+                    <ul className="mt-5 flex flex-wrap gap-2" aria-label="Technologies used">
+                      {p.stack.map((s) => (
+                        <Tag key={s}>{s}</Tag>
+                      ))}
+                    </ul>
+                    {p.repo && (
+                      <span className="mt-5 inline-flex items-center gap-1.5 text-sm text-mute">
+                        <GitHubIcon className="size-3.5" /> Source code
+                      </span>
+                    )}
+                  </article>
+                </li>
+              ))}
+            </ul>
+            <a href={profile.github} {...ext} className="mt-10 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">
+              More on GitHub <ArrowUpRight />
+            </a>
+          </section>
+
+          {/* ---------------- Skills: grouped cards ---------------- */}
+          <section id="skills" className="py-24">
+            <SectionHead n="04" label="Skills" title="My toolkit." />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {skills.map((g, i) => (
+                // The longest group (Backend) spans two columns so five cards fill two rows evenly.
+                <div key={g.label} className={`reveal ${g.label === "Backend" ? "lg:col-span-2" : ""}`} style={delay((i % 3) * 90)}>
+                  <div className="spot-card h-full rounded-2xl border border-line bg-surface/60 p-5">
+                    <h3 className="text-sm font-semibold">{g.label}</h3>
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                      {g.items.map((s) => (
+                        <Tag key={s}>{s}</Tag>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ---------------- Contact: card with a slowly rotating gradient border ---------------- */}
+          <section id="contact" className="py-24">
+            <div className="reveal glow-border rounded-3xl px-6 py-14 text-center sm:px-12">
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">05 / Contact</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl">
+                Let&apos;s <span className="text-gradient">build something</span>.
+              </h2>
+              <p className="mx-auto mt-4 max-w-md text-mute">Email is the best way to reach me.</p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="shine inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-accent to-accent-2 px-6 py-3 text-sm font-semibold text-bg transition-transform hover:-translate-y-0.5"
+                >
+                  <MailIcon /> {profile.email}
+                </a>
+                <CopyEmail email={profile.email} />
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer className="relative z-10 border-t border-line">
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-6 py-8 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Sriram Puranik</p>
+          <p>Built with Next.js, TypeScript and Tailwind CSS. Deployed on Vercel.</p>
+        </div>
+      </footer>
     </>
   );
 }
