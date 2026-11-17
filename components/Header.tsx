@@ -12,22 +12,30 @@ export default function Header({ links }: { links: Link[] }) {
 
   useEffect(() => {
     const ids = links.map((l) => l.href.slice(1));
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) if (e.isIntersecting) setActive(e.target.id);
-      },
-      { rootMargin: "-45% 0px -50% 0px" }, // a section counts as active when it crosses the middle
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    let frame = 0;
+    // The active section is the last one whose top has passed 40% of the screen height.
+    // Above the first section (the intro) nothing is highlighted.
+    const update = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 8);
+      const line = window.innerHeight * 0.4;
+      let current = "";
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= line) current = id;
+      }
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     return () => {
-      io.disconnect();
+      cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
   }, [links]);
 

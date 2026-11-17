@@ -1,11 +1,11 @@
 import Image from "next/image";
 import CopyEmail from "@/components/CopyEmail";
-import CountUp from "@/components/CountUp";
 import Effects from "@/components/Effects";
 import Header from "@/components/Header";
+import SmoothScroll from "@/components/SmoothScroll";
 import RotatingWord from "@/components/RotatingWord";
 import { ArrowUpRight, FileIcon, GitHubIcon, LinkedInIcon, MailIcon } from "@/components/Icons";
-import { education, experience, headlineWords, marquee, navLinks, profile, projects, skills, stats } from "@/data/site";
+import { education, experience, headlineWords, marquee, navLinks, profile, projects, skills } from "@/data/site";
 
 // External links open in a new tab without giving the new page access to this one.
 const ext = { target: "_blank", rel: "noopener noreferrer" } as const;
@@ -20,7 +20,7 @@ function SectionHead({ n, label, title }: { n: string; label: string; title: str
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
         {n} <span className="text-faint">/</span> {label}
       </p>
-      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+      <h2 className="title-slide mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
     </div>
   );
 }
@@ -46,7 +46,7 @@ function CodeCard() {
   return (
     <div className="rise relative min-w-0" style={delay(450)}>
       <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/40 via-transparent to-accent-2/40 blur-sm" aria-hidden="true" />
-      <div className="relative overflow-hidden rounded-2xl border border-line bg-surface/90 shadow-2xl shadow-black/20 backdrop-blur">
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-black/20">
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <span className="size-3 rounded-full bg-[#ff5f57]" />
           <span className="size-3 rounded-full bg-[#febc2e]" />
@@ -69,6 +69,7 @@ function CodeCard() {
 export default function Home() {
   return (
     <>
+      <SmoothScroll />
       <Effects />
       <Header links={navLinks} />
 
@@ -81,7 +82,7 @@ export default function Home() {
 
           {/* min-w-0 stops the code card's long lines from widening the grid on phones. */}
           <div className="mx-auto grid max-w-5xl items-center gap-14 px-6 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1.15fr_1fr]">
-            <div className="min-w-0">
+            <div className="hero-out min-w-0">
               <div className="rise" style={delay(0)}>
                 <Image src={profile.photo} alt={profile.name} width={64} height={64} priority className="size-16 rounded-full border-2 border-line object-cover" />
               </div>
@@ -124,29 +125,15 @@ export default function Home() {
               </div>
             </div>
 
-            <CodeCard />
-          </div>
-
-          {/* Count-up stats */}
-          <div className="mx-auto max-w-5xl px-6 pb-14">
-            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
-              {stats.map((s, i) => (
-                <div key={s.label} className="reveal bg-bg px-5 py-6" style={delay(i * 90)}>
-                  <dt className="sr-only">{s.label}</dt>
-                  <dd>
-                    <span className="text-3xl font-semibold tracking-tight">
-                      <CountUp to={s.value} suffix={s.suffix} />
-                    </span>
-                    <span className="mt-1 block text-xs text-faint">{s.label}</span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            {/* Right column: the code card, drifting slightly slower than the page on scroll. */}
+            <div className="hero-parallax relative min-w-0">
+              <CodeCard />
+            </div>
           </div>
 
           {/* Technology strip: the list is rendered twice so the loop has no gap. */}
           <div className="marquee overflow-hidden border-y border-line py-5" aria-label="Technologies I use">
-            <ul className="marquee-track font-mono text-sm text-faint">
+            <ul className="marquee-track font-mono text-sm text-mute">
               {[...marquee, ...marquee].map((t, i) => (
                 <li key={i} aria-hidden={i >= marquee.length ? "true" : undefined} className="flex items-center gap-10 whitespace-nowrap pr-10">
                   {t}
@@ -279,23 +266,33 @@ export default function Home() {
             </a>
           </section>
 
-          {/* ---------------- Skills: grouped cards ---------------- */}
+          {/* ---------------- Skills: rows of chips sliding right to left ----------------
+              Each row repeats its list so it fills wide screens, then doubles it for a seamless loop.
+              Hovering a row pauses it so a recruiter can read it. */}
           <section id="skills" className="py-24">
             <SectionHead n="04" label="Skills" title="My toolkit." />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {skills.map((g, i) => (
-                // The longest group (Backend) spans two columns so five cards fill two rows evenly.
-                <div key={g.label} className={`reveal ${g.label === "Backend" ? "lg:col-span-2" : ""}`} style={delay((i % 3) * 90)}>
-                  <div className="spot-card h-full rounded-2xl border border-line bg-surface/60 p-5">
-                    <h3 className="text-sm font-semibold">{g.label}</h3>
-                    <ul className="mt-4 flex flex-wrap gap-2">
-                      {g.items.map((s) => (
-                        <Tag key={s}>{s}</Tag>
-                      ))}
-                    </ul>
+            <div className="space-y-4">
+              {skills.map((g, i) => {
+                const filled = Array.from({ length: Math.ceil(14 / g.items.length) }, () => g.items).flat();
+                return (
+                  <div key={g.label} className="reveal flex items-center gap-4" style={delay(i * 80)}>
+                    <h3 className="w-28 shrink-0 font-mono text-xs uppercase tracking-wider text-accent sm:w-40">{g.label}</h3>
+                    <div className="marquee min-w-0 flex-1 overflow-hidden" aria-label={`${g.label}: ${g.items.join(", ")}`}>
+                      <ul className="marquee-track gap-3 py-1" style={{ "--speed": `${26 + i * 5}s` } as React.CSSProperties}>
+                        {[...filled, ...filled].map((sk, j) => (
+                          <li
+                            key={j}
+                            aria-hidden="true"
+                            className="whitespace-nowrap rounded-full border border-line bg-surface/70 px-4 py-2 text-sm text-text transition-colors hover:border-accent hover:text-accent"
+                          >
+                            {sk}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

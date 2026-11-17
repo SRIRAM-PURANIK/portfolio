@@ -31,8 +31,8 @@ export default function Effects() {
     let target: Element | null = null;
     const paint = () => {
       frame = 0;
-      spot.current?.style.setProperty("--x", `${px}px`);
-      spot.current?.style.setProperty("--y", `${py}px`);
+      // Move the glow with transform only: the GPU slides an existing layer, nothing is repainted.
+      if (spot.current) spot.current.style.transform = `translate3d(${px - 350}px, ${py - 350}px, 0)`;
       const card = target?.closest<HTMLElement>(".spot-card");
       if (card) {
         const r = card.getBoundingClientRect();
@@ -67,7 +67,7 @@ export default function Effects() {
 
   return (
     <>
-      <div ref={spot} className="page-spotlight hidden [@media(pointer:fine)]:block" aria-hidden="true" />
+      <div ref={spot} className="page-spotlight hidden [@media(pointer:fine)]:block" style={{ transform: "translate3d(-999px,-999px,0)" }} aria-hidden="true" />
       <div
         ref={bar}
         className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-gradient-to-r from-accent to-accent-2"

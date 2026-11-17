@@ -23,14 +23,6 @@ export const profile = {
 // Words that rotate in the headline: "I build ___".
 export const headlineWords = ["web applications", "REST APIs", "billing systems", "admin dashboards", "AI features"];
 
-// Count-up numbers under the intro. Every figure must stay true and checkable.
-export const stats = [
-  { value: 3, suffix: "", label: "codebases I ship to" },
-  { value: 8, suffix: "+", label: "user roles supported" },
-  { value: 4, suffix: "", label: "projects built" },
-  { value: 20, suffix: "+", label: "tools in my stack" },
-];
-
 // Scrolling strip of technologies.
 export const marquee = ["Node.js", "Express", "React", "JavaScript", "PostgreSQL", "Prisma", "MongoDB", "REST APIs", "AWS", "JWT", "Git", "Vercel", "Render", "OpenAI", "Groq", "Linux"];
 
@@ -38,6 +30,7 @@ export const navLinks = [
   { href: "#about", label: "About" },
   { href: "#experience", label: "Experience" },
   { href: "#projects", label: "Projects" },
+  { href: "#skills", label: "Skills" },
   { href: "#contact", label: "Contact" },
 ];
 

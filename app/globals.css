@@ -51,6 +51,18 @@ html {
   scroll-padding-top: 5rem; /* keep section titles clear of the sticky header */
 }
 
+/* Lenis smooth scroll takes over scrolling, so the browser's own smoothing must be off. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -78,14 +90,19 @@ body {
   color: transparent;
 }
 
-/* ---------- Page-wide cursor spotlight (desktop only) ----------
-   One fixed layer; JS writes the pointer position into --x / --y. */
+/* ---------- Page-wide cursor glow (desktop only) ----------
+   A fixed 700px circle that JS moves with transform, so the GPU slides it without repainting. */
 .page-spotlight {
   pointer-events: none;
   position: fixed;
-  inset: 0;
+  left: 0;
+  top: 0;
   z-index: 0;
-  background: radial-gradient(600px circle at var(--x, 50%) var(--y, -20%), var(--glow), transparent 45%);
+  width: 700px;
+  height: 700px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--glow), transparent 60%);
+  will-change: transform;
 }
 
 /* ---------- Hero background: faint dot grid + two slow drifting colour blobs ---------- */
@@ -126,8 +143,8 @@ body {
   animation-delay: var(--d, 0ms);
 }
 @keyframes rise {
-  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
-  to { opacity: 1; transform: none; filter: blur(0); }
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: none; }
 }
 
 /* ---------- Rotating word in the headline ---------- */
@@ -154,7 +171,7 @@ body {
 /* ---------- Scroll reveal: hidden until the element scrolls into view ---------- */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translate3d(0, 28px, 0) scale(0.985);
   transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
   transition-delay: var(--d, 0ms);
 }
@@ -165,12 +182,13 @@ body {
 
 /* ---------- Tech marquee: two copies of the list slide left forever ---------- */
 .marquee {
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
 }
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee 40s linear infinite;
+  animation: marquee var(--speed, 40s) linear infinite;
+  will-change: transform;
 }
 .marquee:hover .marquee-track {
   animation-play-state: paused;
@@ -265,11 +283,45 @@ body {
   transform: translateX(120%) skewX(-20deg);
 }
 
+/* ---------- Scroll-linked motion (browsers that support it; others simply skip it) ----------
+   Runs on the compositor thread, so it stays smooth even while the page is busy. */
+@supports (animation-timeline: scroll()) {
+  /* Hero text drifts up and fades a little as you scroll away from it. */
+  .hero-out {
+    animation: hero-out linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 70vh;
+  }
+  @keyframes hero-out {
+    to { opacity: 0.25; transform: translate3d(0, -60px, 0); }
+  }
+  /* The character + code card move slower than the page: a light parallax. */
+  .hero-parallax {
+    animation: hero-parallax linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 80vh;
+  }
+  @keyframes hero-parallax {
+    to { transform: translate3d(0, 70px, 0) scale(0.96); }
+  }
+  /* Section titles slide in from the left as they cross the screen. */
+  .title-slide {
+    animation: title-slide linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
+  }
+  @keyframes title-slide {
+    from { transform: translate3d(-40px, 0, 0); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+}
+
 /* Visitors who ask for less motion get the final state with no movement. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .rise, .reveal { opacity: 1 !important; transform: none !important; filter: none !important; animation: none !important; }
   .blob, .marquee-track, .glow-border, .pulse::after, .caret, .word-swap { animation: none !important; }
+  .hero-out, .hero-parallax, .title-slide { animation: none !important; }
   .timeline-line { transform: none !important; }
   .spot-card:hover { transform: none; }
 }
