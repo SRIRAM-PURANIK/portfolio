@@ -23,6 +23,12 @@ export default function Effects() {
     );
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
+    // Pause each moving strip while it is off screen, so the browser only animates what you can see.
+    const strips = new IntersectionObserver((entries) => {
+      for (const e of entries) e.target.classList.toggle("is-paused", !e.isIntersecting);
+    });
+    document.querySelectorAll("[data-marquee]").forEach((el) => strips.observe(el));
+
     // 2. Cursor light: only on devices with a real mouse; updates batched to one per frame.
     const fine = window.matchMedia("(pointer: fine)").matches;
     let frame = 0;
@@ -59,6 +65,7 @@ export default function Effects() {
 
     return () => {
       io.disconnect();
+      strips.disconnect();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(frame);

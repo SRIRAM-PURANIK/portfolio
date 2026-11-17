@@ -42,7 +42,7 @@ export default function Header({ links }: { links: Link[] }) {
   return (
     <header
       className={`sticky top-0 z-40 transition-colors duration-300 ${
-        scrolled ? "border-b border-line/80 bg-bg/75 backdrop-blur-md" : "border-b border-transparent"
+        scrolled ? "border-b border-line/80 bg-bg/95" : "border-b border-transparent"
       }`}
     >
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">

@@ -21,7 +21,7 @@ export const profile = {
 };
 
 // Words that rotate in the headline: "I build ___".
-export const headlineWords = ["web applications", "REST APIs", "billing systems", "admin dashboards", "AI features"];
+export const headlineWords = ["web applications", "REST APIs", "billing systems", "AI features"];
 
 // Scrolling strip of technologies.
 export const marquee = ["Node.js", "Express", "React", "JavaScript", "PostgreSQL", "Prisma", "MongoDB", "REST APIs", "AWS", "JWT", "Git", "Vercel", "Render", "OpenAI", "Groq", "Linux"];

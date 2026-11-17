@@ -2,7 +2,6 @@ import Image from "next/image";
 import CopyEmail from "@/components/CopyEmail";
 import Effects from "@/components/Effects";
 import Header from "@/components/Header";
-import SmoothScroll from "@/components/SmoothScroll";
 import RotatingWord from "@/components/RotatingWord";
 import { ArrowUpRight, FileIcon, GitHubIcon, LinkedInIcon, MailIcon } from "@/components/Icons";
 import { education, experience, headlineWords, marquee, navLinks, profile, projects, skills } from "@/data/site";
@@ -45,7 +44,7 @@ function CodeCard() {
   ];
   return (
     <div className="rise relative min-w-0" style={delay(450)}>
-      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/40 via-transparent to-accent-2/40 blur-sm" aria-hidden="true" />
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/40 via-transparent to-accent-2/40" aria-hidden="true" />
       <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-black/20">
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <span className="size-3 rounded-full bg-[#ff5f57]" />
@@ -69,7 +68,6 @@ function CodeCard() {
 export default function Home() {
   return (
     <>
-      <SmoothScroll />
       <Effects />
       <Header links={navLinks} />
 
@@ -77,8 +75,8 @@ export default function Home() {
         {/* ---------------- Hero ---------------- */}
         <section className="relative overflow-hidden">
           <div className="hero-grid absolute inset-0 -z-10" aria-hidden="true" />
-          <div className="blob blob-a -z-10 left-[8%] top-10 size-72" aria-hidden="true" />
-          <div className="blob blob-b -z-10 right-[10%] top-40 size-64" aria-hidden="true" />
+          <div className="blob blob-a -z-10 left-0 top-0 size-[34rem]" aria-hidden="true" />
+          <div className="blob blob-b -z-10 right-0 top-10 size-[30rem]" aria-hidden="true" />
 
           {/* min-w-0 stops the code card's long lines from widening the grid on phones. */}
           <div className="mx-auto grid max-w-5xl items-center gap-14 px-6 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1.15fr_1fr]">
@@ -132,7 +130,7 @@ export default function Home() {
           </div>
 
           {/* Technology strip: the list is rendered twice so the loop has no gap. */}
-          <div className="marquee overflow-hidden border-y border-line py-5" aria-label="Technologies I use">
+          <div className="marquee relative overflow-hidden border-y border-line py-5" data-marquee aria-label="Technologies I use">
             <ul className="marquee-track font-mono text-sm text-mute">
               {[...marquee, ...marquee].map((t, i) => (
                 <li key={i} aria-hidden={i >= marquee.length ? "true" : undefined} className="flex items-center gap-10 whitespace-nowrap pr-10">
@@ -277,7 +275,7 @@ export default function Home() {
                 return (
                   <div key={g.label} className="reveal flex items-center gap-4" style={delay(i * 80)}>
                     <h3 className="w-28 shrink-0 font-mono text-xs uppercase tracking-wider text-accent sm:w-40">{g.label}</h3>
-                    <div className="marquee min-w-0 flex-1 overflow-hidden" aria-label={`${g.label}: ${g.items.join(", ")}`}>
+                    <div className="marquee relative min-w-0 flex-1 overflow-hidden" data-marquee aria-label={`${g.label}: ${g.items.join(", ")}`}>
                       <ul className="marquee-track gap-3 py-1" style={{ "--speed": `${26 + i * 5}s` } as React.CSSProperties}>
                         {[...filled, ...filled].map((sk, j) => (
                           <li

@@ -51,17 +51,6 @@ html {
   scroll-padding-top: 5rem; /* keep section titles clear of the sticky header */
 }
 
-/* Lenis smooth scroll takes over scrolling, so the browser's own smoothing must be off. */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-stopped {
-  overflow: clip;
-}
 
 body {
   background: var(--bg);
@@ -114,16 +103,15 @@ body {
 .blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
   opacity: 0.35;
   will-change: transform;
 }
 .blob-a {
-  background: var(--accent);
+  background: radial-gradient(closest-side, var(--accent), transparent);
   animation: drift-a 18s ease-in-out infinite alternate;
 }
 .blob-b {
-  background: var(--accent-2);
+  background: radial-gradient(closest-side, var(--accent-2), transparent);
   animation: drift-b 22s ease-in-out infinite alternate;
 }
 [data-theme="light"] .blob {
@@ -181,8 +169,26 @@ body {
 }
 
 /* ---------- Tech marquee: two copies of the list slide left forever ---------- */
-.marquee {
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+.marquee::before,
+.marquee::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 40px;
+  pointer-events: none;
+}
+.marquee::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg), transparent);
+}
+.marquee::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--bg), transparent);
+}
+.marquee.is-paused .marquee-track {
+  animation-play-state: paused;
 }
 .marquee-track {
   display: flex;
@@ -260,7 +266,7 @@ body {
     linear-gradient(var(--surface), var(--surface)) padding-box,
     conic-gradient(from var(--angle), transparent 40%, var(--accent), var(--accent-2), transparent 70%) border-box;
   border: 1px solid transparent;
-  animation: border-angle 6s linear infinite;
+  --angle: 140deg;
 }
 @keyframes border-angle {
   to { --angle: 360deg; }
